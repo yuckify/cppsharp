@@ -17,11 +17,11 @@ namespace cppsharp
 
 			if(_attr == null) return;
 
-			_export = _attr.Contains("gccxml(export)");
-			_import = _attr.Contains("gccxml(import)");
-			_nodtor = _attr.Contains ("gccxml(nodtor)");
+			_export = _attr.Contains("annotate(export)");
+			_import = _attr.Contains("annotate(import)");
+			_nodtor = _attr.Contains ("annotate(nodtor)");
 
-			string regex = "gccxml\\((\\S*)\\)([\\s\\S]*)";
+			string regex = "annotate\\((\\S*)\\)([\\s\\S]*)";
 			string regexText = _attr;
 			Match match = null;
 			while((match = Regex.Match(regexText, regex)).Success)

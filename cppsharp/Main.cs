@@ -47,10 +47,10 @@ namespace cppsharp
 		static void usage()
 		{
 			Console.WriteLine ("cppsharp [options] source-file\n" +
-							   "\t-help -h : print this help menu\n" +
-							   "\t-c : compile only, will not link the *.main files and the main.cpp file\n" +
-							   "\t-lib:<lib name> : the name of the library the contains the c# object code\n" +
-							   "\t-import:<lib name> : name of the library that contains the c++ object code\n" +
+							   "\t-help -h             : print this help menu\n" +
+							   "\t-c                   : compile only, will not link the *.main files and the main.cpp file\n" +
+							   "\t-lib:<lib name>      : the name of the library that will contain the c# object code\n" +
+							   "\t-import:<lib name>   : name of the library that will contain the c++ object code\n" +
 							   "\t\tsetting this will use DllImport instead of InternalCall\n");
 		}
 
@@ -58,6 +58,10 @@ namespace cppsharp
 		static List<string> compileSource(string file, string dllImport, List<string> srcFiles, List<string> includePaths, string outDir)
 		{
 			List<string> ret = new List<string>();
+
+			System.Diagnostics.Process process = new System.Diagnostics.Process();
+			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 
 			// create a temp file to store the xml in
 			using(cppsharp.TempFile tmp = new TempFile())
@@ -68,34 +72,38 @@ namespace cppsharp
 					includeOps += "-I" + str + " ";
 
 				// run the command to
-				System.Diagnostics.Process process = new System.Diagnostics.Process();
-				System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-				startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-				startInfo.FileName = "cmd.exe";
-				startInfo.Arguments = "/c gccxml.exe " + includeOps + file + " -fxml=" + tmp.FilePath + " 2> " + 
-					gccOutputFileName.FilePath;
+				switch (Environment.OSVersion.Platform) {
+				case System.PlatformID.Unix:
+					startInfo.FileName = "castxml";
+					startInfo.Arguments = "-std=c++11 --castxml-gccxml " + includeOps + " " + file + " -o " + tmp.FilePath;
+					startInfo.UseShellExecute = false;
+					break;
+
+				case System.PlatformID.Win32NT:
+					startInfo.FileName = "cmd.exe";
+					startInfo.Arguments = "/c gccxml.exe " + includeOps +" " + file + " -fxml=" + tmp.FilePath + " 2> " + 
+						gccOutputFileName.FilePath;
+					break;
+				}
+
 				process.StartInfo = startInfo;
 				process.Start();
 				process.WaitForExit();
 				process.WaitForExit();
-				
+
 				// get the exit code and print error message if necessary
-				if(process.ExitCode != 0)
-				{
+				if(process.ExitCode != 0) {
 					// there was an error coming from gcc print gcc output to the console
 					String gccOutput = File.ReadAllText(gccOutputFileName.FilePath);
 					Console.Write (gccOutput);
 					Environment.Exit (-1);
 				}
+				
+
 				File.OpenRead(tmp.FilePath).Close();
 				
 				
 				// debug
-				/*
-				string xml = File.ReadAllText(tmp.FilePath);
-				string xmlFile = file.Substring(0, file.LastIndexOf(".")) + ".xml";
-				File.WriteAllText(xmlFile, xml);
-				*/
 				string xml = File.ReadAllText(tmp.FilePath);
 				int indexExt = file.LastIndexOf(".");
 				int indexBase = 0;
@@ -104,9 +112,7 @@ namespace cppsharp
 				string fileBase = file.Substring(indexBase, (indexExt<0 ? file.Length : indexExt) - indexBase);
 				string xmlFile = outDir + "/" + fileBase + ".xml";
 				File.WriteAllText(xmlFile, xml);
-				
-				//				Console.WriteLine ("cmd " + startInfo.Arguments);
-				
+
 				// generate the csharp file
 				cppsharp.CsharpGen gen = new cppsharp.CsharpGen(new XmlTextReader(tmp.FilePath));
 				gen.SourceFiles = srcFiles;
@@ -146,36 +152,21 @@ namespace cppsharp
 			// -o
 			string outDir = null;
 
-			/*
-			sourceFiles.Add ("Mathf.cpp");
-			sourceFiles.Add ("Matrix4x4.cpp");
-			sourceFiles.Add ("Quaternion.cpp");
-			sourceFiles.Add ("Vector2.cpp");
-			sourceFiles.Add ("Vector3.cpp");
-			sourceFiles.Add ("Vector4.cpp");
-
-			inputFiles.Add ("Mathf.h");
-			inputFiles.Add ("Matrix4x4.h");
-			inputFiles.Add ("Quaternion.h");
-			inputFiles.Add ("Vector2.h");
-			inputFiles.Add ("Vector3.h");
-			inputFiles.Add ("Vector4.h");
-			*/
 
 
 			includePaths.Add("..");
-			includePaths.Add("\"C:/Program Files (x86)/Mono-2.10.8/include/mono-2.0\"");
-			inputFiles.Add ("Test.hpp");
-			outDir = "interop";
-			libName = "sharp.dll";
-
-
-			/*
-			inputFiles.Add ("../../../../Spartan/Titan/Headers/Matrix4x4.h");
-			includePaths.Add("C:/workspace/mvarga_game_dev/dev/Spartan/GLGX");
-
-			libName = "sharp.dll";
-*/
+			switch (Environment.OSVersion.Platform) {
+			case System.PlatformID.Win32NT:
+				includePaths.Add("\"C:/Program Files (x86)/Mono-2.10.8/include/mono-2.0\"");
+				break;
+			case System.PlatformID.Unix:
+				includePaths.Add("/usr/include/mono-2.0/");
+				break;
+			}
+//			inputFiles.Add ("Test.hpp");
+//			includePaths.Add ("interop");
+//			outDir = "gen";
+//			libName = "sharp.dll";
 
 			for (int i = 0; i < args.Length; i++) {
 				String arg = args [i];
@@ -225,12 +216,21 @@ namespace cppsharp
 
 			} // for
 
-			CsharpGen.writeCppsharp(outDir, dllImport);
-			includePaths.Add (outDir);
+			// TODO remove this?
+//			CsharpGen.writeCppsharp(outDir, dllImport);
+//			includePaths.Add (outDir);
 
 			if (inputFiles.Count == 0 && linkFiles.Count == 0) {
 				Console.WriteLine ("cppsharp: no input files");
 				Environment.Exit (-1);
+			}
+
+			foreach (string s in includePaths) {
+				Console.WriteLine ("include path " + s);
+			}
+
+			foreach (string f in inputFiles) {
+				Console.WriteLine ("input file " + f);
 			}
 
 			// if the input does not exist throw error
@@ -250,17 +250,13 @@ namespace cppsharp
 			}
 
 			// compile the list of files
-			foreach (string fn in inputFiles)
-			{
+			foreach (string fn in inputFiles) {
 				List<string> tmpMain = compileSource (fn, dllImport, sourceFiles, includePaths, outDir);
 				foreach(string file in tmpMain)
 					linkFiles.Add (file);
-//				string mainFile = fn.Substring(0, fn.LastIndexOf("."));
-//				linkFiles.Add(mainFile + ".main");
 			}
 
-			if(!justCompile || (inputFiles.Count == 0 && linkFiles.Count != 0))
-			{
+			if(!justCompile || (inputFiles.Count == 0 && linkFiles.Count != 0)) {
 				cppsharp.Linker linker = new cppsharp.Linker();
 				linker.SourceFiles = sourceFiles;
 
@@ -272,6 +268,6 @@ namespace cppsharp
 			}
 
 			Environment.Exit (0);
-		}
+		} // Main()
 	} // MainClass
 }

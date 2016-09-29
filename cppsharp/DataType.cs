@@ -41,8 +41,6 @@ namespace cppsharp
 
 		public AccessMode modeFromString(string modeStr)
 		{
-//			if(modeStr == null) throw new System.NullReferenceException("modeStr is null");
-
 			switch(modeStr)
 			{
 			case "public": return AccessMode.Public;
@@ -51,12 +49,15 @@ namespace cppsharp
 			}
 
 			return AccessMode.Public;
-//			throw new System.ArgumentException("could not parse modeStr");
 		}
 
 		public DataType (XmlTextReader reader)
 		{
 			_id = reader["id"];
+		}
+
+		public DataType (string id) {
+			_id = id;
 		}
 
 		public DataType() {}
@@ -195,6 +196,22 @@ namespace cppsharp
 		TypeMap _parent;
 	} // class DataType
 
+	// this is a hack to handle whatever the f*** "_0" is
+	public class UnknownType : DataType {
+		public UnknownType() : base("_0") 
+		{
+			_name = "void";
+		}
+
+		override public string Name { get { return _name; } }
+		override public string TypeName { get { return _name; } }
+		override public string ResolvedName { get { return _name; } }
+		override public bool IsPod { get { return true; } }
+		override public string Namespace { get { return Name; } }
+
+		string _name;
+	} // class UnknownType
+
 	public class Typedef : DataType
 	{
 		public Typedef(XmlTextReader reader) : base(reader)
@@ -277,10 +294,12 @@ namespace cppsharp
 			_type = reader["type"];
 			string constStr = reader["const"];
 			string volatileStr = reader["volatile"];
+			string restrictStr = reader["restrict"];
 			if(constStr != null) if(constStr == "1") _const = true;
 			if(volatileStr != null) if(volatileStr == "1") _volatile = true;
+			if (restrictStr != null) if (restrictStr == "1") _restrict = true;
 
-			if(!_const && !_volatile) throw new System.ArgumentException("CvQualifiedType is neither const nor" +
+			if(!_const && !_volatile && !_restrict) throw new System.ArgumentException("CvQualifiedType is neither const nor" +
 				"volatile");
 		}
 
@@ -294,6 +313,7 @@ namespace cppsharp
 
 		bool _const;
 		bool _volatile;
+		bool _restrict;
 		string _type;
 	}
 

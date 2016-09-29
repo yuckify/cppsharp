@@ -213,6 +213,7 @@ namespace cppsharp
 		
 		public void process ()
 		{
+			_types.Add (new UnknownType ());
 			while(reader_.Read())
 			{
 				if(reader_.NodeType == XmlNodeType.Element)
@@ -235,18 +236,7 @@ namespace cppsharp
 
 					case "Field":				Field f = new Field(reader_, this); ContextMap[f.ContextId].Fields.Add(f); break;
 
-					case "Typedef":				
-					{
-
-						DataType type = new Typedef(reader_);
-						_types.Add (type);
-						/*
-						if(contextMap_.ContainsKey(type.TypeId))
-							contextMap_[type.TypeId].Export = true;
-							*/
-
-						break;
-					}
+					case "Typedef":				_types.Add (new Typedef(reader_)); break;
 					case "FundamentalType":		_types.Add (new FundamentalType(reader_)); break;
 					case "PointerType": 		_types.Add (new PointerType(reader_)); break;
 					case "ReferenceType": 		_types.Add (new ReferenceType(reader_)); break;
