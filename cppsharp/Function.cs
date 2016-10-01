@@ -237,7 +237,7 @@ namespace cppsharp
 			if(CC.DllImport == null)
 			{
 				MainWriter.Write ("mono_add_internal_call (\"");
-				MainWriter.WriteLine (ContextType.NamespaceCs + "::" + ESName + "\", " + ESName + ");");
+				MainWriter.WriteLine (ContextType.NamespaceCs + "::" + ESName + "\", (void *)" + ESName + ");");
 			}
 		}
 
@@ -600,10 +600,10 @@ namespace cppsharp
 			{
 				if(Attr.Get != null)
 					MainWriter.WriteLine ("mono_add_internal_call (\"" + ContextType.NamespaceCs + 
-					                      "::" + ESGetName + "\", " + ESGetName + ");");
+						"::" + ESGetName + "\", (void *)" + ESGetName + ");");
 				if(Attr.Set != null)
 					MainWriter.WriteLine ("mono_add_internal_call (\"" + ContextType.NamespaceCs + 
-					                      "::" + ESSetName + "\", " + ESSetName + ");");
+						"::" + ESSetName + "\", (void *)" + ESSetName + ");");
 			}
 		}
 

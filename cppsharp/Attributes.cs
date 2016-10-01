@@ -26,13 +26,13 @@ namespace cppsharp
 			Match match = null;
 			while((match = Regex.Match(regexText, regex)).Success)
 			{
-				Match propMatch = Regex.Match (match.Groups[1].ToString(), "(get|set),(\\S+)");
+				Match propMatch = Regex.Match (match.Groups[1].ToString(), "(getter|setter),(\\S+)");
 				string propType = propMatch.Groups[1].ToString();
 				string propName = propMatch.Groups[2].ToString();
 				switch(propType)
 				{
-				case "set":	_set = propName; _setId = id; break;
-				case "get": _get = propName; _getId = id; break;
+				case "setter":	_set = propName; _setId = id; break;
+				case "getter": _get = propName; _getId = id; break;
 				}
 				regexText = match.Groups[2].ToString();
 			}

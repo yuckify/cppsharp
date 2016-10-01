@@ -47,7 +47,7 @@ namespace cppsharp
 				
 			}
 
-			using(StreamWriter mainFile = new StreamWriter(OutDir + "/main.cpp"))
+			using(StreamWriter mainFile = new StreamWriter(OutDir + "/init.cpp"))
 			{
 				mainFile.WriteLine ("#include<stdlib.h>");
 				mainFile.WriteLine ("#include<mono/metadata/object.h>");
@@ -64,14 +64,15 @@ namespace cppsharp
 					mainFile.WriteLine ("\t" + str);
 				mainFile.WriteLine ("}\n");
 
-				mainFile.WriteLine ("int main(int argc, char** argv)\n{");
-				mainFile.WriteLine ("\tmono_config_parse (NULL);");
-				mainFile.WriteLine ("\t//cppsharp::Domain::__domain = mono_jit_init (\"" + lib + "\");\n");
-				mainFile.WriteLine ("\tinitInternalCall();");
-				mainFile.WriteLine ("\n\tMonoAssembly *assembly = mono_domain_assembly_open (cppsharp::Domain::__domain, \"" + lib + "\");");
-				mainFile.WriteLine ("\tif (!assembly) exit (-2);");
-				mainFile.WriteLine ("\tmono_jit_exec (cppsharp::Domain::__domain, assembly, argc, argv);");
-				mainFile.WriteLine ("}");
+//				mainFile.WriteLine ("int main(int argc, char** argv)\n{");
+//				mainFile.WriteLine ("\tmono_config_parse (NULL);");
+//				mainFile.WriteLine ("\tcppsharp::Domain::__domain = mono_jit_init (\"" + lib + "\");\n");
+
+//				mainFile.WriteLine ("\n\tMonoAssembly *assembly = mono_domain_assembly_open (cppsharp::Domain::__domain, \"" + lib + "\");");
+//				mainFile.WriteLine ("\tif (!assembly) exit (-2);");
+//				mainFile.WriteLine ("\tinitInternalCall();");
+//				mainFile.WriteLine ("\tmono_jit_exec (cppsharp::Domain::__domain, assembly, argc, argv);");
+//				mainFile.WriteLine ("}");
 			}
 		}
 

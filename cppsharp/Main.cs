@@ -225,14 +225,6 @@ namespace cppsharp
 				Environment.Exit (-1);
 			}
 
-			foreach (string s in includePaths) {
-				Console.WriteLine ("include path " + s);
-			}
-
-			foreach (string f in inputFiles) {
-				Console.WriteLine ("input file " + f);
-			}
-
 			// if the input does not exist throw error
 			List<string> missingFiles = new List<string> ();
 			foreach (string fn in inputFiles)

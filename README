@@ -6,11 +6,7 @@ A compiler that takes annotated c++ files. It generates a c# interface for c++ s
 
 Dependencies:
 
-gccxml
+castxml
 c# - mono, visual studio
 
-TODO:
-1. currently using out of date gccxml
-	update using castxml
-2. implementation is unnecessarily complicated
-	convert code to cleaner c++ code using boost xml
+
