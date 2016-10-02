@@ -36,7 +36,8 @@ see the files in the "test" directory for more details on basic usage of cppshar
 Dependencies:
 
 castxml
-c# - mono
+mono c#
+boost jam - to build test
 
 API:
 

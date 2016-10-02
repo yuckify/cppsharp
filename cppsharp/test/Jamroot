@@ -1,0 +1,27 @@
+CPP_SOURCES	=
+	lib/cppsharp.cpp
+	bin/cppsharp_init.cpp
+	bin/Test_cppsharp.cpp
+	main.cpp
+	;
+
+CS_SOURCES	=	
+	;
+			
+CFLAGS		=
+	-TP
+	;
+
+exe Test
+	:
+	$(CPP_SOURCES)
+	: 
+	<cflags>$(CFLAGS)
+	<include>"C:/Program Files/Mono/include/mono-2.0"
+	<include>bin
+	<include>.
+	<include>other_dir
+	<include>lib
+	<library>"C:/Program Files/Mono/lib/monosgen-2.0.lib"
+	;
+
