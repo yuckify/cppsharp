@@ -5,8 +5,8 @@
 	#define __nodtor		__attribute__((annotate("nodtor")))
 	#define __import		__attribute__((annotate("import")))
 	#define __export		__attribute__((annotate("export")))
-	#define __setter(x)		__attribute__((annotate("set," #x )))
-	#define __getter(x)		__attribute__((annotate("get," #x )))
+	#define __setter(x)		__attribute__((annotate("setter," #x )))
+	#define __getter(x)		__attribute__((annotate("getter," #x )))
 #else
 	#define __nodtor
 	#define __import
