@@ -236,6 +236,7 @@ namespace cppsharp
 
 					case "Field":				Field f = new Field(reader_, this); ContextMap[f.ContextId].Fields.Add(f); break;
 
+					case "Unimplemented":		_types.Add(new Unimplemented(reader_)); break;
 					case "Typedef":				_types.Add (new Typedef(reader_)); break;
 					case "FundamentalType":		_types.Add (new FundamentalType(reader_)); break;
 					case "PointerType": 		_types.Add (new PointerType(reader_)); break;

@@ -68,7 +68,7 @@ namespace cppsharp
 			using(cppsharp.TempFile gccOutputFileName = new TempFile())
 			{
 				string includeOps = "";
-				foreach(string str in includePaths)
+				foreach (string str in includePaths)
 					includeOps += "-I" + str + " ";
 
 				// run the command to
@@ -78,11 +78,10 @@ namespace cppsharp
 					startInfo.Arguments = "-std=c++11 --castxml-gccxml " + includeOps + " " + file + " -o " + tmp.FilePath;
 					startInfo.UseShellExecute = false;
 					break;
-
 				case System.PlatformID.Win32NT:
 					startInfo.FileName = "cmd.exe";
-					startInfo.Arguments = "/c gccxml.exe " + includeOps +" " + file + " -fxml=" + tmp.FilePath + " 2> " + 
-						gccOutputFileName.FilePath;
+					startInfo.Arguments = "/c C:/local/castxml/bin/castxml.exe -fms-compatibility-version=19 -std=c++14 --castxml-gccxml " + 
+							includeOps + " " + file + " -o " + tmp.FilePath + " 2> " + gccOutputFileName.FilePath;
 					break;
 				}
 
@@ -94,8 +93,9 @@ namespace cppsharp
 				// get the exit code and print error message if necessary
 				if(process.ExitCode != 0) {
 					// there was an error coming from gcc print gcc output to the console
-					String gccOutput = File.ReadAllText(gccOutputFileName.FilePath);
-					Console.Write (gccOutput);
+					Console.WriteLine("ERROR:");
+					Console.WriteLine("castxml command \"" + startInfo.Arguments + "\", code " + process.ExitCode);
+					Console.Write (File.ReadAllText(gccOutputFileName.FilePath));
 					Environment.Exit (-1);
 				}
 				
@@ -143,30 +143,12 @@ namespace cppsharp
 			List<string> linkFiles = new List<string> ();
 			// -c
 			bool justCompile = false;
-			// -lib
-			string libName = null;
 			// -import
 			string dllImport = null;
 			// -I
 			List<string> includePaths = new List<string>();
 			// -o
 			string outDir = null;
-
-
-
-			includePaths.Add("..");
-			switch (Environment.OSVersion.Platform) {
-			case System.PlatformID.Win32NT:
-				includePaths.Add("\"C:/Program Files (x86)/Mono-2.10.8/include/mono-2.0\"");
-				break;
-			case System.PlatformID.Unix:
-				includePaths.Add("/usr/include/mono-2.0/");
-				break;
-			}
-//			inputFiles.Add ("Test.hpp");
-//			includePaths.Add ("interop");
-//			outDir = "gen";
-//			libName = "sharp.dll";
 
 			for (int i = 0; i < args.Length; i++) {
 				String arg = args [i];
@@ -187,7 +169,6 @@ namespace cppsharp
 					}
 
 					switch (opString) {
-					case "lib":		libName = opArg.EndsWith("/") ? opArg.Substring(0, opArg.LastIndexOf("/")) : opArg; break;
 					case "import":	dllImport = opArg; break;
 					case "c":		justCompile = true; break;
 					case "I":		includePaths.Add(opArg.EndsWith("/") ? opArg.Substring(0, opArg.LastIndexOf("/")) : opArg); break;
@@ -256,7 +237,7 @@ namespace cppsharp
 					linker.AddFile (fn);
 
 				linker.OutDir = outDir;
-				linker.link(libName);
+				linker.link();
 			}
 
 			Environment.Exit (0);

@@ -12,7 +12,12 @@ namespace cppsharp
 
 		}
 
-		public DataType this[string id] { get { return _types[id]; } set { _types[id] = value; } }
+		public DataType this[string id] { get {
+				if (!_types.ContainsKey(id)) {
+					Console.WriteLine("ERROR: typemap does not contain key \"" + id + "\"");
+				}
+				return _types[id];
+			} set { _types[id] = value; } }
 		public void Add(DataType type)
 		{
 			type.Parent = this;
@@ -211,6 +216,21 @@ namespace cppsharp
 
 		string _name;
 	} // class UnknownType
+
+	public class Unimplemented : DataType
+	{
+		public Unimplemented(XmlTextReader reader) : base(reader) {
+			_type_class = reader["Decltype"];
+		}
+
+		override public string Name { get { return _type_class; } }
+		override public string TypeName { get { return _type_class; } }
+		override public string ResolvedName { get { return _type_class; } }
+		override public bool IsPod { get { return true; } }
+		override public string Namespace { get { return Name; } }
+
+		string _type_class;
+	} // class Unimplemented
 
 	public class Typedef : DataType
 	{

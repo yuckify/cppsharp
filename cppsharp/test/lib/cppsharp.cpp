@@ -68,22 +68,14 @@ uint64_t GetFileTime(string file)
     return ret;
 }
 
-void sleep(uint32_t ms)
-{
-#ifdef _WIN32
-    Sleep(ms);
-#else
-	usleep(ms*1000);
-#endif
-}
-
-Atomic<unsigned> Runtime::_init = 0;
-Atomic<unsigned> Runtime::_free = 0;
+atomic<unsigned> Runtime::_init(0);
+atomic<unsigned> Runtime::_free(0);
 
 Runtime::Runtime(string dllName, string domainName)
 {
+	unsigned expected = 0;
     // setup the environment
-    if (!_init.CompareAndSwap(0, 1)) {
+    if (_init.compare_exchange_strong(expected, 1)) {
         _domain = mono_jit_init (domainName.c_str());
 	} else {
         _domain = mono_domain_create();
@@ -100,7 +92,8 @@ Runtime::Runtime(string dllName, string domainName)
 
 Runtime::~Runtime()
 {
-    if (_free.CompareAndSwap(0, 1))
+	unsigned expected = 0;
+    if (_free.compare_exchange_strong(expected, 1))
     {
         mono_assembly_close(_assembly);
         mono_domain_free(_domain, true);
@@ -108,7 +101,7 @@ Runtime::~Runtime()
 }
 
 void Runtime::JitExec(int argc, char **argv) {
-	mono_jit_exec (_domain, _assembly, argc, argv);
+	mono_jit_exec(_domain, _assembly, argc, argv);
 }
 
 Method::Method(MonoObject* obj, Runtime* runtime, string cl, string func) :
@@ -140,7 +133,7 @@ AssemblyManager::~AssemblyManager()
     while (IsRunning());
 }
 
-AssemblyManager::AssemblyManager() : _libSem(_libLock)
+AssemblyManager::AssemblyManager()
 {
 //    _engineScriptsDir = "./";
 //    _scripts.push_back(_engineScriptsDir + "Vector2.cs");
@@ -155,13 +148,12 @@ AssemblyManager::AssemblyManager() : _libSem(_libLock)
 //    _libList.push_back("Scripts.dll");
 //    _libList.push_back("Scripts2.dll");
     _masterLib = "Test.dll";
-    
     // start the thread
     _stopThread = false;
     _threadStopped = false;
     if (_mode == Debug) {
-        int status = pthread_create(&_thread, NULL, ThreadFun, this);
-        assert(status == 0);
+//        int status = pthread_create(&_thread, NULL, ThreadFun, this);
+//        assert(status == 0);
     } else {
         _runtime = new Runtime(_masterLib);
 	}
@@ -246,21 +238,20 @@ void AssemblyManager::Run()
         
         {
             // make sure no one else is operating on the assembly
-            ScopedLock<Mutex> locker(_libLock);
-            _libSem.Wait();
+            unique_lock<mutex> locker(_libLock);
             
             bool rebuild = CheckRebuild();
             if (rebuild) Rebuild();
         } // locker
         
-        sleep(10);
+//        sleep(10);
     }
     _threadStopped = true;
 }
 
 void AssemblyManager::CreateObject(Object* obj, string class_name)
 {
-    ScopedLock<Semaphore> locker(_libSem);
+	unique_lock<mutex> locker(_libLock);
     
     // input the a script and its path and the ".cs" extension since its a 
     // c# script, this will trim the extension and the path
@@ -287,13 +278,12 @@ void AssemblyManager::CreateObject(Object* obj, string class_name)
     
     // register the object
     obj->_data = data;
-    obj->_sem = &_libSem;
     _objList.push_back(obj);
 }
 
 void AssemblyManager::FreeObject(Object *obj)
 {
-    ScopedLock<Semaphore> locker(_libSem);
+	unique_lock<mutex> locker(_libLock);
     
     vector<Object*>::iterator it = _objList.begin();
     for(it; it != _objList.end(); it++)
@@ -330,12 +320,12 @@ Object::~Object()
 }
 
 void Object::OnCreate() {
-    ScopedLock<Semaphore> locker(*_sem);
+    unique_lock<mutex> locker(_lock);
     _data->_onCreateMethod->call(_data->_obj);
 }
 
 void Object::OnUpdate() {
-    ScopedLock<Semaphore> locker(*_sem);
+    unique_lock<mutex> locker(_lock);
     _data->_onUpdateMethod->call(_data->_obj);
 }
 

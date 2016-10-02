@@ -19,14 +19,8 @@ namespace cppsharp
 
 		public List<string> SourceFiles { set { _sourceFiles = value; } }
 		
-		public void link(string lib)
+		public void link()
 		{
-			if(lib == null)
-			{
-				Console.WriteLine ("error : output lib required (-lib:<lib name>).");
-				Environment.Exit (-1);
-			}
-			
 			List<string> includes = new List<string>();
 			List<string> call = new List<string>();
 
@@ -47,7 +41,7 @@ namespace cppsharp
 				
 			}
 
-			using(StreamWriter mainFile = new StreamWriter(OutDir + "/init.cpp"))
+			using(StreamWriter mainFile = new StreamWriter(OutDir + "/cppsharp_init.cpp"))
 			{
 				mainFile.WriteLine ("#include<stdlib.h>");
 				mainFile.WriteLine ("#include<mono/metadata/object.h>");
@@ -59,7 +53,7 @@ namespace cppsharp
 				mainFile.WriteLine ("#include<mono/jit/jit.h>");
 				mainFile.WriteLine ("");
 
-				mainFile.WriteLine ("void initInternalCall()\n{");
+				mainFile.WriteLine ("void cppsharp_init()\n{");
 				foreach(string str in call)
 					mainFile.WriteLine ("\t" + str);
 				mainFile.WriteLine ("}\n");

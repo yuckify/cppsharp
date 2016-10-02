@@ -15,8 +15,10 @@
 	#define __getter(x)
 #endif
 
-#include "atomic.h"
-#include "mutex.h"
+#ifdef _MSC_VER
+#include <Windows.h>
+#define _GLIBCXX_USE_NOEXCEPT
+#endif
 
 #include <string>
 #include <vector>
@@ -34,8 +36,11 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/appdomain.h>
-#include <pthread.h>
 #include <sys/stat.h>
+
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 using namespace std;
 
@@ -61,7 +66,6 @@ void __throw_error(bool cond, const char *cond_str, const char *file, int line);
 	bool FileExists(std::string filename);
 	std::string str(const char* str);
     uint64_t GetFileTime(string file);
-    void sleep(uint32_t ms);
     
     class Object;
     
@@ -78,8 +82,8 @@ void __throw_error(bool cond, const char *cond_str, const char *file, int line);
         MonoDomain* _domain;
 		MonoAssembly* _assembly;
 		MonoImage* _image;
-        static Atomic<unsigned> _init;
-        static Atomic<unsigned> _free;
+        static std::atomic<unsigned> _init;
+        static std::atomic<unsigned> _free;
     }; // class Runtime
     
     class Method {
@@ -161,15 +165,13 @@ void __throw_error(bool cond, const char *cond_str, const char *file, int line);
         Runtime* _runtime;
         
         // variables for the thread that handles loading/compiling the assembly
-        pthread_t _thread;
-        Atomic<int> _stopThread;
-        Atomic<int> _threadStopped;
+        std::atomic<int> _stopThread;
+        std::atomic<int> _threadStopped;
         
         // used to control access to the assembly, Object will increment the
         // use count in the Semaphore the worker thread will lock the assembly
         // using the mutex
-        Mutex _libLock;
-        Semaphore _libSem;
+		mutex _libLock;
 	}; // class AssemblyManager
 
 
@@ -186,7 +188,7 @@ void __throw_error(bool cond, const char *cond_str, const char *file, int line);
         
 	private:
         AssemblyManager::ObjectData* _data;
-        Semaphore* _sem;
+        mutex _lock;
 	}; // class Object
 	
 } // namespace cppsharp

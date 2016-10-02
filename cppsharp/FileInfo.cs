@@ -23,8 +23,8 @@ namespace cppsharp
 			string fileBase = _fileName.Substring(indexBase, (indexExt<0 ? _fileName.Length : indexExt) - indexBase);
 
 			// set the output file names for the files being generated
-			_cHeaderFileName = _outDir + "/" + fileBase + "_interop.hpp";
-			_cSourceFileName = _outDir + "/" + fileBase + "_interop.cpp";
+			_cHeaderFileName = _outDir + "/" + fileBase + "_cppsharp.hpp";
+			_cSourceFileName = _outDir + "/" + fileBase + "_cppsharp.cpp";
 			_csFileName = _outDir + "/" + fileBase + ".cs";
 			_mainFileName = _outDir + "/" + fileBase + ".main";
 			
