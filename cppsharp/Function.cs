@@ -552,18 +552,15 @@ namespace cppsharp
 		string ESSetFunc { get { return ESQualifiers + "void " + ESSetName + "(" + 
 				ESThisPtr + ", " + CC.Converter.CSESType(_field.Type) + " amp);"; } }
 
-		public override void writeCS()
-		{
+		public override void writeCS() {
 			if(Access != "public") return;
 			if(Attr.Get == null && Attr.Set == null) return;
 			
-			if(Attr.Get != null)
-			{
+			if(Attr.Get != null) {
 				CsWriter.WriteLine (CSAttr);
 				CsWriter.WriteLine (ESGetFunc);
 			}
-			if(Attr.Set != null)
-			{
+			if(Attr.Set != null) {
 				CsWriter.WriteLine (CSAttr);
 				CsWriter.WriteLine(ESSetFunc);
 			}
@@ -576,20 +573,30 @@ namespace cppsharp
 				file.Write (CC.Converter.CSPType(Return) + " ");
 			else
 				file.Write (CC.Converter.CSPType(_field.Type) + " ");
-			
-			file.WriteLine (Name + " {");
-			
-			if(Attr.Get != null) 
+
+			if (Attr.Get != null) {
+				file.WriteLine(Attr.Get + " {");
 				file.WriteLine("\tget {\n\t\treturn " + ESGetName + "(CppHandle);\n\t}");
+				if (Attr.Get != Attr.Set)
+					file.WriteLine("}");
+			}
+
+			if (Attr.Get != Attr.Set && Attr.Set != null) {
+				file.Write("public ");
+				if (Attr.Get != null)
+					file.Write(CC.Converter.CSPType(Return) + " ");
+				else
+					file.Write(CC.Converter.CSPType(_field.Type) + " ");
+			}
 			
-			if(Attr.Set != null)
-			{
+			if(Attr.Set != null) {
+				if (Attr.Get != Attr.Set)
+					file.WriteLine(Attr.Set + " {");
 				file.WriteLine ("\tset {");
 				file.WriteLine ("\t\t" + ESSetName + "(CppHandle, value" + (CC.Converter.UseHandle(_field.Type) ? ".CppHandle" : "") + ");");
 				file.WriteLine ("\t}");
+				file.WriteLine("}");
 			}
-			
-			file.WriteLine ("}");
 		}
 		
 		public override void writeMain()

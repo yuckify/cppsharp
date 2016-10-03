@@ -6,6 +6,9 @@ class MainTest
 {
 	static int count = 0;
 	static int passed = 0;
+	
+	static int total = 0;
+	static int total_passed = 0;
 
 	public static void StartTest(string test)
 	{
@@ -14,13 +17,22 @@ class MainTest
 
 	public static void EndTest(string test)
 	{
-		Console.WriteLine ("\t" + test);
+		if (passed != count)
+			Console.WriteLine ("\tFailed " + (count - passed) + " in unit");
+		else
+			Console.WriteLine ("\tPassed");
+		passed = 0;
+		count = 0;
 	}
 
 	public static void EXPECT_TRUE(bool check, string msg)
 	{
+		total++;
 		count++;
-		if(check) passed++;
+		if(check) {
+			passed++;
+			total_passed++;
+		}
 		else Console.WriteLine ("Failed " + msg);
 	}
 
@@ -121,6 +133,29 @@ class MainTest
 			"type arg, enum");
 		EndTest ("Passed");
 
+		// test the get/set generation
+		StartTest ("get/set");
+		EXPECT_TRUE (tmp.Var == 1000, "get Var");
+		tmp.Var = 123;
+		EXPECT_TRUE (tmp.Var == 123, "set Var");
+		EXPECT_TRUE (tmp.A == 1001, "get A");
+		tmp.B = 123;
+		EXPECT_TRUE (tmp.A == 123, "set B");
+		
+		EXPECT_TRUE (tmp.VarA == 1002, "get VarA");
+		tmp.VarA = 123;
+		EXPECT_TRUE (tmp.VarA == 123, "set VarA");
+		
+		EXPECT_TRUE (tmp.VarC == 1003, "get VarC");
+		tmp.VarC = 123;
+		EXPECT_TRUE (tmp.VarC == 123, "set VarC");
+		
+		EXPECT_TRUE (tmp.VarE == 1004, "get VarE");
+		tmp.VarD = 123;
+		EXPECT_TRUE (tmp.VarE == 123, "set VarD");
+		
+		EndTest ("Passed");
+		
 		// test the operators
 		StartTest ("operators");
 		// member operators
@@ -145,8 +180,8 @@ class MainTest
 		//*********************************************************************
 		// print the results
 		Console.WriteLine ("");
-		Console.WriteLine ("Tests Run " + count);
-		Console.WriteLine ("Tests Passed " + passed);
+		Console.WriteLine ("Tests Run " + total);
+		Console.WriteLine ("Tests Passed " + total_passed);
 		Console.WriteLine ("");
 
 		//*********************************************************************

@@ -25,8 +25,11 @@ public:
 	};
 	
 	Test() {
-//		get_set_a = 0;
-//		get_set_b = 0;
+		get_set_a = 1000;
+		get_set_b = 1001;
+		VarA = 1002;
+		VarB = 1003;
+		VarD = 1004;
 	}
 
 	void charTinput(const char*) {}
@@ -103,26 +106,16 @@ public:
 	
 	// test get/set generation
 	int get_set_a;
-	
-	__setter(Var)
-	void setter(int a) { get_set_a = a; };
-	__getter(Var)
-	int getter() { return get_set_a; }
 	int get_set_b;
-	__getter(A)
-	int getA() { return get_set_b; }
-	__setter(B)
-	void setB(int b) { get_set_b = b; }
-	__getter(Z) __getter(Y) __getter(X)
-	int getC() { return get_set_b; }
-	__setter(Z) __setter(Y) __setter(X)
-	void setD(int b) { get_set_b = b; }
 	
-	int VarC __setter(VarC);
-	int VarD __getter(VarD);
-	int VarE __setter(VarE) __getter(VarE);
-	int VarF __getter(VarF) __setter(VarF);
+	__setter(Var)	void setter(int a) { get_set_a = a; };
+	__getter(Var)	int getter() { return get_set_a; }
+	__getter(A)		int getA() { return get_set_b; }
+	__setter(B)		void setB(int b) { get_set_b = b; }
 	
+	int VarA __setter(VarA) __getter(VarA);
+	int VarB __setter(VarC) __getter(VarC);
+	int VarD __setter(VarD) __getter(VarE);
 
 	// returning class
 	class RetTest {} __export;
