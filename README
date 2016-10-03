@@ -37,7 +37,8 @@ Dependencies:
 
 castxml
 mono c#
-boost jam - to build test
+boost jam - to build test on windows
+MINGW - to build/run test on windows
 
 API:
 
