@@ -14,7 +14,7 @@ source_file="Test.hpp"
 base=${source_file%%.*}
 dll="bin/$base.dll"
 cs_file="bin/$base.cs"
-cppsharp_files="bin/${base}_cppsharp.cpp main.cpp bin/init.cpp"
+cppsharp_files="bin/${base}_cppsharp.cpp main.cpp bin/cppsharp_init.cpp"
 
 if [[ $OS = "Windows_NT" ]]; then
 	target="bin/${base}.exe"
@@ -26,13 +26,18 @@ lib="lib/cppsharp.cpp"
 
 if [[ $OS = "Windows_NT" ]]; then
 	mono_cflags="-I:\"C:/Program Files/Mono/include/mono-2.0\""
+else
+	mono_cflags="-I:/usr/include/mono-2.0/"
 fi
 # generate the interface
+echo "Generating c# interface"
 ../bin/Debug/cppsharp.exe "$mono_cflags" -I:./lib -I:other_dir -o:bin $source_file
 
 # compile the test program
+echo "Compiling c# code"
 mcs -platform:x64 Main.cs $cs_file lib/cppsharp.cs CallbackTest.cs -unsafe -out:$dll
 
+echo "Compiling c++ code"
 lflags="$(pkg-config --libs --cflags monosgen-2)"
 cflags+="-Iother_dir -Ilib -I. -Ibin"
 if [[ $OS = "Windows_NT" ]]; then
@@ -44,7 +49,7 @@ if [[ $OS = "Windows_NT" ]]; then
 	cp `find -name Test.exe` bin/
 else
 	cflags+=" -g"
-	g++ -fpermissive $lib $cppsharp_files $cflags $lflags -o $target
+	g++ -std=c++14 -fpermissive $lib $cppsharp_files $cflags $lflags -o $target
 fi
 
 
